@@ -45,6 +45,15 @@ if issues == 0:
     print "No errors found in editors.xml"
     print ""
 
+# Read in the NLS file and build a dictionary.
+nls = {}
+with open('profile/nls/en_us.txt') as fp:
+    for line in fp:
+        line = line.rstrip()
+        if line != "" and line[0] != '#':
+            pair = line.split(" = ")
+            nls[pair[0]] = pair[1]
+
 # Now parse the node definitions and build the appropriate driver arrays
 node_tree = ET.parse('profile/nodedef/nodedef.xml')
 root = node_tree.getroot()
@@ -62,3 +71,34 @@ for item in root:
                 else:
                     print("\t{'driver': '%s', 'value': 0, 'uom': %s}," % (status.attrib['id'], editors[status.attrib['editor']]))
             print "\t]"
+
+node_tree = ET.parse('profile/nodedef/nodedef.xml')
+root = node_tree.getroot()
+for item in root:
+    nodeType = item.attrib['nodeType']
+    nodeNls = item.attrib['nls']
+    nodeId = item.attrib['id']
+
+    # look up node name
+    name = 'ND-' + nodeId + '-NAME'
+    if name in nls:
+        print("node name = %s" % nls[name])
+    else:
+        print("ERROR: node name missing or incorrect")
+
+    name = 'ND-' + nodeId + '-ICON'
+    if name in nls:
+        print("node icon = %s" % nls[name])
+    else:
+        print("ERROR: node icon missing or incorrect")
+
+    for node in item:
+        if node.tag == 'sts':
+            for status in node:
+                name = 'ST-' + nodeNls + '-' + status.attrib['id'] + '-NAME'
+                if name in nls:
+                    print("status %s has name = %s" % (status.attrib['id'], nls[name]))
+                else:
+                    print("ERROR: status %s name is missing or incorrect" % status.attrib['id'])
+
+    
